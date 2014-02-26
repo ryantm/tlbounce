@@ -23,10 +23,12 @@
   (let [parsed-or-failure (ircparse.core/message message)] 
     (if (:failure parsed-or-failure)
       (parse-failure parse-failure)
-      (cond
-       (= "PING" (:command parsed-or-failure)) 
-       {:reply [(build-irc-message {:command "PONG" :trailing (:trailing-params parsed-or-failure)})]}
-       ))))
+      (let [parsed parsed-or-failure]
+        (cond
+         (= "PING" (:command parsed)) 
+         {:reply [(build-irc-message {:command "PONG" :trailing (:trailing-params parsed)})]}
+         (= "PRIVMSG" (:command parsed))
+         {:log [{:reason :message :message {:from (:client-nickname parsed) :channel  (apply str (:middle-params parsed)) :body (:trailing-params parsed)}}]})))))
 
 (defn execute-logs [conn command-map]
   (let [logs (:log command-map)]
