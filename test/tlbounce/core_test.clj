@@ -19,11 +19,11 @@
     (let [instructions (handle-message "PING :cameron.freenode.net\r\n")]
       (is (= (:reply instructions)
              ["PONG :cameron.freenode.net\r\n"]))))
-  (testing "should log PRIVMSG message"
-    (let [log (:log (handle-message ":blah!~ryantm@localhost.localdomain PRIVMSG #test :wow!\r\n"))
-          log-message (first log)]
-      (is (= log-message
-             {:reason :message :message {:from "blah" :channel "#test" :body "wow!"}})))))
+  (testing "should store PRIVMSG message"
+    (let [messages (:message (handle-message ":blah!~ryantm@localhost.localdomain PRIVMSG #test :wow!\r\n"))
+          message (first messages)]
+      (is (= message
+             {:from "blah" :channel "#test" :body "wow!"})))))
 
 (deftest startup-test
   (testing "sendings start up messages"

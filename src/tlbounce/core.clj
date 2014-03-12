@@ -1,7 +1,9 @@
 (ns tlbounce.core
   (:require [ircparse.core]
-            [clojure.pprint :refer [pprint]])
-  (:import (java.net Socket)
+            [clojure.pprint :refer [pprint]]
+            [talklibre.format :refer [map->Message]])
+  (:import (talklibre.format Message)
+           (java.net Socket)
            (java.io PrintWriter InputStreamReader BufferedReader)))
 
 (defn write [conn msg]
@@ -28,7 +30,26 @@
          (= "PING" (:command parsed)) 
          {:reply [(build-irc-message {:command "PONG" :trailing (:trailing-params parsed)})]}
          (= "PRIVMSG" (:command parsed))
-         {:log [{:reason :message :message {:from (:client-nickname parsed) :channel  (apply str (:middle-params parsed)) :body (:trailing-params parsed)}}]})))))
+         {:message [{:from (:client-nickname parsed) :channel  (apply str (:middle-params parsed)) :body (:trailing-params parsed)}]})))))
+
+(def output-file "output.edn")
+
+(defn store-message [message]
+  (println message)
+  (let [message (assoc message 
+                  :id (java.util.UUID/randomUUID)
+                  :instant (java.util.Date.)
+                  :type "IRC"
+                  :source "localhost" 
+                  :content-type "text/plain")
+        ircmessage (pr-str (map->Message message))]
+    (println ircmessage)
+    (spit output-file ircmessage :append true)))
+
+(defn execute-messages [conn command-map]
+  (let [messages (:message command-map)]
+    (dorun (map store-message messages)))
+  command-map)
 
 (defn execute-logs [conn command-map]
   (let [logs (:log command-map)]
@@ -44,6 +65,7 @@
   "Executes a map of commands."
   (->> command-map
        (execute-logs conn)
+       (execute-messages conn)
        (execute-replies conn)))
 
 (def startup-message
@@ -56,7 +78,6 @@
         (dosync (alter conn merge {:exit true}))
         (let [msg (str msg "\r\n")]
           (do
-            (pprint msg)
             (let [command-map (handle-message msg)]
               (println command-map)
               (execute-commands conn command-map))))))))
