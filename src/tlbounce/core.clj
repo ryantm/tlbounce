@@ -7,9 +7,12 @@
            (java.io PrintWriter InputStreamReader BufferedReader)))
 
 (defn write [conn msg]
+  (if (< 510 (count msg))
+    (throw (Exception. (str "Message, " msg ", exceeds 510 character IRC protocol limit."))))
   (doto (:out @conn)
-    (.println (str msg "\r\n"))
-    (.flush)))
+    (.print (str msg "\r\n"))
+    (.flush))
+  conn)
 
 (defn build-irc-message [m]
   "Given a map, m, build a valid IRC message."
@@ -30,7 +33,9 @@
          (= "PING" (:command parsed)) 
          {:reply [(build-irc-message {:command "PONG" :trailing (:trailing-params parsed)})]}
          (= "PRIVMSG" (:command parsed))
-         {:message [{:from (:client-nickname parsed) :channel  (apply str (:middle-params parsed)) :body (:trailing-params parsed)}]})))))
+         {:message [{:from (:client-nickname parsed) :channel  (apply str (:middle-params parsed)) :body (:trailing-params parsed)}]}
+         :else
+         {:log [(str "Ignored message: " parsed)]})))))
 
 (def output-file "output.edn")
 
@@ -90,6 +95,17 @@
     (doto (Thread. #(conn-handler conn)) (.start))
     conn))
 
+(defn make-privmsg [body]
+  (str "PRIVMSG #test :" body))
+
+(defn send-privmsg [conn body]
+  (doall (map #(write conn (make-privmsg (apply str %))) (filter (complement empty?) (split-at (- 510 15) body)))))
+
+(defn stdin-to-privmsg [conn]
+  (doseq [line (line-seq (java.io.BufferedReader. *in*))] 
+    (send-privmsg conn line)))
+
 (defn -main [& _]
   (-> (connect 6667)
-      (write startup-message)))
+      (write startup-message)
+      (stdin-to-privmsg)))
