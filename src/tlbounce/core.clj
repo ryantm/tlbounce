@@ -6,12 +6,16 @@
            (java.net Socket)
            (java.io PrintWriter InputStreamReader BufferedReader)))
 
+(def message-max-character-length 512)
+(def output-file "output.edn")
+
 (defn write [conn msg]
-  (if (< 510 (count msg))
-    (throw (Exception. (str "Message, " msg ", exceeds 510 character IRC protocol limit."))))
-  (doto (:out @conn)
-    (.print (str msg "\r\n"))
-    (.flush))
+  (let [msg (str msg "\r\n")]
+    (if (< message-max-character-length (count msg))
+      (throw (Exception. (str "Message, " msg ", exceeds " message-max-character-length " character IRC message protocol limit."))))
+    (doto (:out @conn)
+      (.print msg)
+      (.flush)))
   conn)
 
 (defn build-irc-message [m]
@@ -35,9 +39,8 @@
          (= "PRIVMSG" (:command parsed))
          {:message [{:from (:client-nickname parsed) :channel  (apply str (:middle-params parsed)) :body (:trailing-params parsed)}]}
          :else
-         {:log [(str "Ignored message: " parsed)]})))))
+         {:log [(str "Unhandled message: " parsed)]})))))
 
-(def output-file "output.edn")
 
 (defn store-message [message]
   (let [message (assoc message 
@@ -97,7 +100,7 @@
 
 (defn send-privmsg [conn body]
   (doall (map #(write conn (make-privmsg (apply str %))) 
-              (filter (complement empty?) (split-at (- 510 15) body)))))
+              (filter (complement empty?) (partition-all (- (- message-max-character-length 2) 15) body)))))
 
 (defn stdin-to-privmsg [conn]
   (doseq [line (line-seq (java.io.BufferedReader. *in*))] 

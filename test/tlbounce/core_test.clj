@@ -67,9 +67,11 @@
       (send-privmsg conn "hello")
       (is (= (.readLine in)
              "PRIVMSG #test :hello"))
+
       (let [length-of-non-message (count "PRIVMSG #test :")
-            long-string (apply str (take (- 510 length-of-non-message) (repeat "A")))
-            too-long-string (str long-string "L")]
+            long-string (apply str (take (- (- message-max-character-length 2) length-of-non-message) (repeat "A")))
+            too-long-string (str long-string "L")
+            double-long-string (str long-string long-string "L")]
         (send-privmsg conn long-string)
         (is (= (.readLine in)
                (str "PRIVMSG #test :" long-string)))
@@ -78,6 +80,14 @@
                      (write (str "PRIVMSG #test :" too-long-string))))
 
         (send-privmsg conn too-long-string)
+        (is (= (.readLine in)
+               (str "PRIVMSG #test :" long-string)))
+        (is (= (.readLine in)
+               (str "PRIVMSG #test :L")))
+
+        (send-privmsg conn double-long-string)
+        (is (= (.readLine in)
+               (str "PRIVMSG #test :" long-string)))
         (is (= (.readLine in)
                (str "PRIVMSG #test :" long-string)))
         (is (= (.readLine in)
