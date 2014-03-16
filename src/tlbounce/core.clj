@@ -40,7 +40,6 @@
 (def output-file "output.edn")
 
 (defn store-message [message]
-  (println message)
   (let [message (assoc message 
                   :id (java.util.UUID/randomUUID)
                   :instant (java.util.Date.)
@@ -48,7 +47,6 @@
                   :source "localhost" 
                   :content-type "text/plain")
         ircmessage (pr-str (map->Message message))]
-    (println ircmessage)
     (spit output-file ircmessage :append true)))
 
 (defn execute-messages [conn command-map]
@@ -76,7 +74,7 @@
 (def startup-message
   "NICK ryantm\r\nUSER bob _ _ : Ryan Mulligan\r\nJOIN #test")
 
-(defn conn-handler [conn]
+(defn connection-handler [conn]
   (while (nil? (:exit @conn))
     (let [msg (.readLine (:in @conn))]
       (if (nil? msg)
@@ -84,28 +82,28 @@
         (let [msg (str msg "\r\n")]
           (do
             (let [command-map (handle-message msg)]
-              (println command-map)
               (execute-commands conn command-map))))))))
 
-(defn connect [port]
-  (let [socket (Socket. "localhost" port)
+(defn connect [hostname port]
+  (let [socket (Socket. hostname port)
         in (BufferedReader. (InputStreamReader. (.getInputStream socket)))
         out (PrintWriter. (.getOutputStream socket))
         conn (ref {:in in :out out})]
-    (doto (Thread. #(conn-handler conn)) (.start))
+    (doto (Thread. #(connection-handler conn)) (.start))
     conn))
 
 (defn make-privmsg [body]
   (str "PRIVMSG #test :" body))
 
 (defn send-privmsg [conn body]
-  (doall (map #(write conn (make-privmsg (apply str %))) (filter (complement empty?) (split-at (- 510 15) body)))))
+  (doall (map #(write conn (make-privmsg (apply str %))) 
+              (filter (complement empty?) (split-at (- 510 15) body)))))
 
 (defn stdin-to-privmsg [conn]
   (doseq [line (line-seq (java.io.BufferedReader. *in*))] 
     (send-privmsg conn line)))
 
 (defn -main [& _]
-  (-> (connect 6667)
+  (-> (connect "localhost" 6667)
       (write startup-message)
       (stdin-to-privmsg)))

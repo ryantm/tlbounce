@@ -29,7 +29,7 @@
   (testing "sendings start up messages"
     (let [irc-port 6668
           server-socket (new ServerSocket 6668)
-          conn (connect irc-port)
+          conn (connect "localhost" irc-port)
           accepted-socket (.accept server-socket)
           in (BufferedReader. (InputStreamReader. (.getInputStream accepted-socket)))
           out (PrintWriter. (.getOutputStream accepted-socket))]
@@ -46,7 +46,7 @@
   (testing "ping and pong"
     (let [irc-port 6668
           server-socket (new ServerSocket 6668)
-          conn (connect irc-port)
+          conn (connect "localhost" irc-port)
           accepted-socket (.accept server-socket)
           in (BufferedReader. (InputStreamReader. (.getInputStream accepted-socket)))
           out (PrintWriter. (.getOutputStream accepted-socket))]
@@ -60,7 +60,7 @@
   (testing "privmsg sending"
     (let [irc-port 6668
           server-socket (new ServerSocket 6668)
-          conn (connect irc-port)
+          conn (connect "localhost" irc-port)
           accepted-socket (.accept server-socket)
           in (BufferedReader. (InputStreamReader. (.getInputStream accepted-socket)))
           out (PrintWriter. (.getOutputStream accepted-socket))]
