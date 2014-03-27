@@ -41,7 +41,6 @@
          :else
          {:log [(str "Unhandled message: " parsed)]})))))
 
-
 (defn store-message [message]
   (let [message (assoc message 
                   :id (java.util.UUID/randomUUID)
