@@ -20,7 +20,10 @@
       (is (= (:reply instructions)
              ["PONG :cameron.freenode.net\r\n"]))))
   (testing "should store PRIVMSG message"
-    (let [messages (:message (handle-message ":blah!~ryantm@localhost.localdomain PRIVMSG #test :wow!\r\n"))
+    (let [messages
+          (:message
+           (handle-message
+            ":blah!~ryantm@localhost.localdomain PRIVMSG #test :wow!\r\n"))
           message (first messages)]
       (is (= message
              {:from "blah" :channel "#test" :body "wow!"})))))
@@ -31,7 +34,8 @@
           server-socket (new ServerSocket 6668)
           conn (connect "localhost" irc-port)
           accepted-socket (.accept server-socket)
-          in (BufferedReader. (InputStreamReader. (.getInputStream accepted-socket)))
+          in (BufferedReader.
+              (InputStreamReader. (.getInputStream accepted-socket)))
           out (PrintWriter. (.getOutputStream accepted-socket))]
 
       (write conn startup-message)
@@ -48,7 +52,8 @@
           server-socket (new ServerSocket 6668)
           conn (connect "localhost" irc-port)
           accepted-socket (.accept server-socket)
-          in (BufferedReader. (InputStreamReader. (.getInputStream accepted-socket)))
+          in (BufferedReader.
+              (InputStreamReader. (.getInputStream accepted-socket)))
           out (PrintWriter. (.getOutputStream accepted-socket))]
       (.println out "PING :example.com")
       (.flush out)
@@ -62,14 +67,18 @@
           server-socket (new ServerSocket 6668)
           conn (connect "localhost" irc-port)
           accepted-socket (.accept server-socket)
-          in (BufferedReader. (InputStreamReader. (.getInputStream accepted-socket)))
+          in (BufferedReader.
+              (InputStreamReader. (.getInputStream accepted-socket)))
           out (PrintWriter. (.getOutputStream accepted-socket))]
       (send-privmsg conn "hello")
       (is (= (.readLine in)
              "PRIVMSG #test :hello"))
 
       (let [length-of-non-message (count "PRIVMSG #test :")
-            long-string (apply str (take (- (- message-max-character-length 2) length-of-non-message) (repeat "A")))
+            long-string
+            (apply str (take (-
+                              (- message-max-character-length 2)
+                              length-of-non-message) (repeat "A")))
             too-long-string (str long-string "L")
             double-long-string (str long-string long-string "L")]
         (send-privmsg conn long-string)
