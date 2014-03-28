@@ -6,4 +6,5 @@
   :main tlbounce.core
   :dependencies [[org.clojure/clojure "1.5.1"]
                  [ircparse "0.3.0"]
+                 [ring "1.2.2"]
                  [org.clojure/tools.reader "0.8.3"]])

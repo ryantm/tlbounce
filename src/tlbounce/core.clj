@@ -1,7 +1,8 @@
 (ns tlbounce.core
   (:require [ircparse.core]
             [clojure.pprint :refer [pprint]]
-            [talklibre.format :refer [map->Message]])
+            [talklibre.format :refer [map->Message]]
+            [tlbounce.api :refer [api-server-start]])
   (:import (talklibre.format Message)
            (java.net Socket)
            (java.io PrintWriter InputStreamReader BufferedReader)))
@@ -116,6 +117,7 @@
     (send-privmsg conn line)))
 
 (defn -main [& _]
+  (future (api-server-start))
   (-> (connect "localhost" 6667)
       (write startup-message)
       (stdin-to-privmsg)))
