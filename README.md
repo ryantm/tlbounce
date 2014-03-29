@@ -1,6 +1,6 @@
 #tlbounce [![Build Status](https://travis-ci.org/talklibre/tlbounce.png?branch=master)](https://travis-ci.org/talklibre/tlbounce)
 
-The [talklibre](https://github.com/talklibre/vision) IRC bouncer.
+The [talklibre](https://github.com/talklibre/vision) IRC [bouncer](http://en.wikipedia.org/wiki/BNC_(software)).
 
 #Overview
 
