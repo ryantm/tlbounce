@@ -1,6 +1,6 @@
-(ns tlbounce.core-test
+(ns tlbounce.irc-test
   (:require [clojure.test :refer :all]
-            [tlbounce.core :refer :all])
+            [tlbounce.irc :refer :all])
   (:import (java.net ServerSocket Socket SocketException)
            (java.io PrintWriter InputStreamReader BufferedReader)))
 

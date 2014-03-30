@@ -7,4 +7,5 @@
   :dependencies [[org.clojure/clojure "1.6.0"]
                  [ircparse "0.4.0"]
                  [ring "1.2.2"]
+                 [compojure "1.1.6"]
                  [org.clojure/tools.reader "0.8.3"]])
